@@ -1,0 +1,268 @@
+sql
+
+#inner join
+#Tampilkan daftar film beserta nama aktor yang membintangi film tersebut. Gabungkan tabel film dan actor melalui tabel perantara film_actor.
+SELECT film.title, actor.first_name, actor.last_name
+FROM sakila.film
+INNER JOIN sakila.film_actor ON film.film_id = film_actor.film_id
+INNER JOIN sakila.actor ON film_actor.actor_id = actor.actor_id;
+
+#left JOIN
+#Tampilkan semua film beserta aktor yang membintangi, termasuk film yang tidak memiliki aktor yang terdaftar. Gabungkan tabel film dan actor melalui tabel perantara film_actor.
+SELECT film.title, actor.first_name, actor.last_name
+FROM sakila.film
+left JOIN sakila.film_actor ON film.film_id = film_actor.film_id
+left JOIN sakila.actor ON film_actor.actor_id = actor.actor_id;
+
+#right JOIN
+#Tampilkan semua aktor dan film yang dibintangi, termasuk aktor yang belum membintangi film apapun. Gabungkan tabel actor dan film_actor.
+SELECT actor.first_name, actor.last_name, film.title
+FROM sakila.actor
+right JOIN sakila.film_actor ON actor.actor_id = film_actor.actor_id
+right JOIN sakila.film ON film_actor.film_id = film.film_id;
+
+#full JOIN
+#Tampilkan semua film dan semua aktor, termasuk yang tidak terhubung. Gabungkan tabel film, actor, dan film_actor.
+SELECT film.title, actor.first_name, actor.last_name
+FROM sakila.film
+full JOIN sakila.film_actor ON film.film_id = film_actor.film_id
+full JOIN sakila.actor ON film_actor.actor_id = actor.actor_id;
+
+#inner join, where
+#Tampilkan judul film dan kategori film yang memiliki durasi lebih dari 100 menit. Gabungkan tabel film dan category.
+SELECT film.title, category.name
+FROM sakila.film
+INNER JOIN sakila.film_category ON film.film_id = film_category.film_id
+INNER JOIN sakila.category on film_category.category_id = category.category_id
+WHERE film.length > 100
+
+# left join, group by
+#Tampilkan daftar pelanggan beserta jumlah pembayaran yang telah dilakukan, termasuk pelanggan yang belum melakukan pembayaran. Gabungkan tabel customer dan payment.
+SELECT customer.first_name, customer.last_name, SUM(payment.amount)
+FROM sakila.customer
+LEFT JOIN sakila.payment ON customer.customer_id = payment.customer_id
+GROUP BY customer.customer_id
+
+# inner join, agregat
+# Tampilkan jumlah total pembayaran yang diterima untuk setiap film. Gabungkan tabel film dan payment.
+SELECT film.title, sum(payment.amount) 
+from sakila.film
+INNER JOIN sakila.inventory ON film.film_id = inventory.film_id
+INNER JOIN sakila.rental ON inventory.inventory_id = rental.inventory_id
+INNER JOIN sakila.payment ON rental.rental_id = payment.rental_id
+GROUP BY film.film_id
+
+# left join, group
+# Tampilkan nama aktor dan jumlah film yang mereka bintangi, termasuk aktor yang belum membintangi film apapun. Gabungkan tabel actor dan film_actor.
+SELECT actor.first_name, actor.last_name, COUNT(film_actor.film_id) 
+WHERE sakila.actor
+LEFT JOIN sakila.film_actor ON actor.actor_id = film_actor.actor_id
+GROUP BY actor.actor_id
+
+#cross join
+#Tampilkan semua kombinasi karyawan dengan film yang tersedia. Gabungkan tabel staff dan film menggunakan CROSS JOIN.
+SELECT staff.first_name, staff.last_name, film.title
+from sakila.staff
+CROSS JOIN sakila.film
+
+#agregat
+#count
+#Tulis query untuk menghitung total jumlah karyawan yang memiliki gaji lebih dari 5000.
+SELECT COUNT(actor.actor_id) as jumlahactor
+FROM sakila.actor
+
+# avg
+# Tulis query untuk mencari rata-rata durasi film (film) yang ada dalam database.
+SELECT AVG(film.length) AS lamafilm
+FROM sakila.film  #min
+#Tulis query untuk menemukan harga rental terkecil untuk film yang ada dalam database.
+SELECT min(film.rental_duration) FROM sakila.film
+
+
+#group by
+#Tulis query untuk menghitung jumlah pelanggan yang melakukan penyewaan berdasarkan negara (country), kelompokkan hasilnya berdasarkan negara.
+SELECT c.country_id, COUNT(*) as jumlah
+FROM sakila.customer cu
+JOIN sakila.address a ON cu.address_id = a.address_id
+JOIN sakila.city ci ON a.city_id = ci.city_id
+JOIN sakila.country c on ci.country_id = c.country_id
+JOIN sakila.rental r on cu.customer_id = r.customer_id
+GROUP BY c.country_id
+
+
+#group by
+#Tulis query untuk menemukan pelanggan dengan jumlah pembelian terkecil. Kelompokkan hasilnya berdasarkan nama pelanggan
+SELECT customer.first_name, customer.last_name, COUNT(payment.amount)AS total
+from sakila.customer
+JOIN sakila.payment ON customer.customer_id = payment.customer_id
+GROUP BY customer.first_name, customer.last_name
+ORDER by total ASC
+
+
+#group by
+#Tulis query untuk mencari rata-rata pembayaran yang dilakukan oleh pelanggan berdasarkan kategori film (category).
+SELECT category.name, AVG(payment.amount) 
+FROM sakila.payment
+JOIN sakila.rental ON payment.rental_id = rental.rental_id
+JOIN sakila.inventory ON rental.inventory_id = inventory.inventory_id
+JOIN sakila.film ON inventory.film_id = film.film_id
+JOIN sakila.film_category ON film.film_id = film_category.film_id
+JOIN sakila.category ON film_category.category_id = category.category_id
+GROUP BY category.name;
+
+#count
+#Tulis query untuk menampilkan kategori film yang memiliki lebih dari 10 film, menggunakan fungsi agregat COUNT dengan kondisi HAVING.
+SELECT category.name AS kategori_film, COUNT(film.film_id) AS jumlah_film
+FROM sakila.film
+JOIN sakila.film_category ON film.film_id = film_category.film_id
+JOIN sakila.category ON film_category.category_id = category.category_id
+GROUP BY category.name
+HAVING COUNT(film.film_id) > 10;  
+#join, sum
+#Tulis query untuk menampilkan total pembayaran yang diterima oleh setiap staff, dengan menggabungkan tabel payment dan staff.
+SELECT staff.first_name, staff.last_name, SUM(payment.amount)
+from sakila.payment
+JOIN sakila.staff ON payment.staff_id = staff.staff_id
+GROUP BY staff.staff_id
+
+
+#nested, sum
+#Tulis query untuk menemukan pelanggan dengan total pembayaran tertinggi menggunakan nested query, yang menggabungkan tabel payment dan customer.
+SELECT first_name, last_name
+FROM sakila.customer
+WHERE customer_id = (
+    SELECT customer_id
+    FROM sakila.payment
+    GROUP BY customer_id
+    ORDER BY SUM(amount) DESC
+
+
+# view
+#View untuk Data Customer dengan Pembayaran Tertinggi:
+CREATE VIEW cust AS
+SELECT customer.first_name, customer.last_name, SUM(payment.amount) AS total
+FROM sakila.customer
+JOIN sakila.payment ON customer.customer_id = payment.customer_id
+GROUP BY customer.customer_id
+ORDER BY total DESC
+
+
+# Stored Procedures
+#Stored Procedure untuk Menambah Stok Produk:
+DELIMITER //
+CREATE PROCEDURE add_product_stock(IN p_product_code VARCHAR(10), IN p_quantity INT)
+BEGIN
+    UPDATE sakila.inventory
+    SET quantity_in_stock = quantity_in_stock + p_quantity
+    WHERE product_code = p_product_code;
+END //
+DELIMITER ;
+
+
+# Triggers
+#Trigger untuk Mengurangi Stok Produk Setiap Ada Order:
+
+DELIMITER //
+CREATE TRIGGER reduce_stock_after_order
+AFTER INSERT ON sakila.rental
+FOR EACH ROW
+BEGIN
+    UPDATE sakila.inventory
+    SET quantity_in_stock = quantity_in_stock - NEW.quantity
+    WHERE inventory_id = NEW.inventory_id;
+END //
+DELIMITER ;
+
+1. seluruh nama actor dalam film yg sama
+SELECT a.first_name, a.last_name
+FROM sakila.actor a
+JOIN sakila.film_actor fa ON a.actor_id = fa.actor_id
+JOIN sakila.film f ON fa.film_id = f.film_id
+WHERE f.title = 'Your Film Title'; 
+
+
+1. seluruh nama actor dengan kategori yg sama
+SELECT a.first_name, a.last_name
+FROM sakila.actor a
+JOIN sakila.film_actor fa ON a.actor_id = fa.actor_id
+JOIN sakila.film_category fc ON fa.film_id = fc.film_id
+JOIN sakila.category c ON fc.category_id = c.category_id
+WHERE c.name = 'Your Category Name';  
+
+
+1. seluruh naam, nomor telepon pelanggan, beserta judul dvd yg telah dipinjamm dimana melewati batas pengembalian
+SELECT c.first_name, c.last_name, c.phone, f.title, r.rental_date, r.return_date
+FROM sakila.customer c
+JOIN sakila.rental r ON c.customer_id = r.customer_id
+JOIN sakila.inventory i ON r.inventory_id = i.inventory_id
+JOIN sakila.film f ON i.film_id = f.film_id
+WHERE r.return_date < CURDATE() AND r.return_date IS NOT NULL;
+
+
+1. tampilkan jumlah dilm huncback yang ada di gudang
+SELECT COUNT(*) AS jumlah_gudang
+FROM sakila.inventory i
+JOIN sakila.film f ON i.film_id = f.film_id
+WHERE f.title = 'Hunchback';
+
+
+1. tampilkan judul film yang paling sering disewa dalam descending order beserta frekuensi penyewanya
+SELECT f.title, COUNT(r.rental_id) AS rental_count
+FROM sakila.film f
+JOIN sakila.inventory i ON f.film_id = i.film_id
+JOIN sakila.rental r ON i.inventory_id = r.inventory_id
+GROUP BY f.title
+ORDER BY rental_count DESC;
+
+
+1. tampillkan seluruh nama customer dan total uang yang pernah dibayarkan ke bisnis dvd ini, tampilkan secara terurut berdasarkan last name
+SELECT c.first_name, c.last_name, SUM(p.amount) AS total_payment
+FROM sakila.customer c
+JOIN sakila.payment p ON c.customer_id = p.customer_id
+GROUP BY c.customer_id
+ORDER BY c.last_name;
+
+1. gunakan nested query untuk menampilkan seluruh actor dalam film alone trip
+SELECT a.first_name, a.last_name
+FROM sakila.actor a
+WHERE a.actor_id IN (
+    SELECT fa.actor_id
+    FROM sakila.film_actor fa
+    JOIN sakila.film f ON fa.film_id = f.film_id
+    WHERE f.title = 'Alone Trip'
+);
+
+1. buat stored  procedure untuk menambahkan data pada tabel film
+DELIMITER //
+CREATE PROCEDURE add_film(IN p_title VARCHAR(255), IN p_description TEXT, IN p_release_year YEAR, IN p_language_id INT)
+BEGIN
+    INSERT INTO sakila.film (title, description, release_year, language_id)
+    VALUES (p_title, p_description, p_release_year, p_language_id);
+END //
+DELIMITER ;
+
+
+1. buat stored procedure untuk menghapus data pada tabel actor
+DELIMITER //
+CREATE PROCEDURE delete_actor(IN p_actor_id INT)
+BEGIN
+    DELETE FROM sakila.actor WHERE actor_id = p_actor_id;
+END //
+DELIMITER ;
+
+
+1. buat view untuk menampilkna daftar dri seluruh staff beserta alamat dan informasi tokonya
+CREATE VIEW staff_store_info AS
+SELECT s.first_name, s.last_name, s.email, s.store_id, st.address_id, a.address, a.district, a.city_id
+FROM sakila.staff s
+JOIN sakila.store st ON s.store_id = st.store_id
+JOIN sakila.address a ON st.address_id = a.address_id;
+
+
+
+
+
+
+
+
+
